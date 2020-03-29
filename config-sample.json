@@ -1,0 +1,25 @@
+{
+  "bridge": {
+    "name": "Homebridge Pi",
+    "username": "AA:00:11:BB:CC:DD",
+    "port": 51826,
+    "pin": "121-11-121"
+  },
+
+  "description": "Homebridge Server",
+
+  "platforms": [],
+
+  "accessories": [
+    {
+      "accessory": "WHR930",
+      "name": "Ventilation",
+      "manufacturer": "Comfoair",
+      "port": "/dev/tty.usbserial-1420",
+      "baudRate": 9600,
+      "minTemperature": 15,
+      "maxTemperature": 30,
+      "updateInterval": 500
+    }
+  ]
+}
