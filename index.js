@@ -9,7 +9,7 @@ const Comfoair = require('comfoair');
  *
  * @type {*|(function(): FakeGatoHistory)}
  */
-const FakeGatoHistoryService = require('fakegato-history')(homebridge);
+let FakeGatoHistoryService;
 
 /**
  *
@@ -61,6 +61,8 @@ const CharacteristicEventTypes = {
  */
 module.exports = function(homebridge)
 {
+    FakeGatoHistoryService = require('fakegato-history')(homebridge);
+
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
     homebridge.registerAccessory('homebridge-comfoair', 'ComfoAir', ComfoAirAccessory);
@@ -92,7 +94,7 @@ class ComfoAirAccessory
          *
          * @type {boolean}
          */
-        this.debug = false;
+        this.debug = this.config['debug'] || false;
 
         /**
          *
