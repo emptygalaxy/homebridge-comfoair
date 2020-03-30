@@ -7,6 +7,12 @@ const Comfoair = require('comfoair');
 
 /**
  *
+ * @type {*|(function(): FakeGatoHistory)}
+ */
+const FakeGatoHistoryService = require('fakegato-history')(homebridge);
+
+/**
+ *
  * @type {{away: number, middle: number, HIGH: number, "0": string, AWAY: number, "1": string, "2": string, high: number, "3": string, low: number, LOW: number, MIDDLE: number}}
  */
 const VentilationLevel = {
@@ -169,6 +175,12 @@ class ComfoAirAccessory
             filterOperatingHours: 0,
             replaceFilter: false,
         };
+
+        /**
+         *
+         * @type {FakeGatoHistoryService}
+         */
+        this.loggingService = new FakeGatoHistoryService('thermo', this, {size: 4032, disableTimer: true});
 
 
         /**
@@ -739,6 +751,8 @@ class ComfoAirAccessory
         // this.refreshFaults((err, state) => {
         //     this.log('replaceFilter='+this.state.replaceFilter);
         // });
+
+        this.loggingService.addEntry({time: Math.round(new Date().getTime()/1000), currentTemp: this.state.outsideTemperature, setTemp: this.state.targetTemperature, valvePosition: 0});
     }
 
     /**
