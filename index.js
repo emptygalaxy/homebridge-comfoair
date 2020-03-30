@@ -176,12 +176,6 @@ class ComfoAirAccessory
             replaceFilter: false,
         };
 
-        /**
-         *
-         * @type {FakeGatoHistoryService}
-         */
-        this.loggingService = new FakeGatoHistoryService('thermo', this, {size: 4032, disableTimer: true});
-
 
         /**
          *
@@ -230,6 +224,7 @@ class ComfoAirAccessory
         services.push(this.getThermostatService());
         services.push(this.getOutsideTemperatureService());
         services.push(this.getFilterService());
+        services.push(this.getLoggingService());
 
         services.push(this.getInformationService());
 
@@ -254,6 +249,22 @@ class ComfoAirAccessory
             .setCharacteristic(Characteristic.SerialNumber, this.deviceSerial);
 
         return this.informationService;
+    }
+
+    /**
+     *
+     * @return {FakeGatoHistoryService}
+     */
+    getLoggingService()
+    {
+
+        /**
+         *
+         * @type {FakeGatoHistoryService}
+         */
+        this.loggingService = new FakeGatoHistoryService('thermo', this, {size: 4032, disableTimer: true});
+
+        return this.loggingService;
     }
 
     getFanService()
