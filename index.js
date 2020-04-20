@@ -316,7 +316,7 @@ class ComfoAirAccessory
             .setProps({
                 minValue: 0,
                 maxValue: this.maxFanSpeed,
-                minStep: 25,
+                minStep: this.maxFanSpeed / this.maxLevel,
             })
             .on(CharacteristicEventTypes.GET, this.getFanSpeed.bind(this))
             .on(CharacteristicEventTypes.SET, this.setFanSpeed.bind(this));

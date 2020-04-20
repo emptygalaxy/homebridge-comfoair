@@ -1,0 +1,57 @@
+{
+  "pluginAlias": "ComfoAir",
+  "pluginType": "accessory",
+  "singular": false,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "required": true
+      },
+      "manufacturer": {
+        "title": "Manufacturer",
+        "type": "string",
+        "required": false
+      },
+      "port": {
+        "title": "Port",
+        "type": "string",
+        "required": true
+      },
+      "baudRate": {
+        "title": "Baud Rate",
+        "type": "number",
+        "required": false
+      },
+      "minTemperature": {
+        "title": "Min Temperature",
+        "type": "number",
+        "required": false
+      },
+      "maxTemperature": {
+        "title": "Max Temperature",
+        "type": "number",
+        "required": false
+      },
+      "updateInterval": {
+        "title": "Update interval",
+        "type": "number",
+        "required": false
+      },
+      "setOffToLow": {
+        "title": "Set off to low",
+        "type": "bool",
+        "required": false
+      },
+      "debug": {
+        "title": "Use fake values without connecting",
+        "type": "bool",
+        "required": false
+      }
+    }
+  },
+  "form": null,
+  "display": null
+}
