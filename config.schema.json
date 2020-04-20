@@ -45,6 +45,11 @@
         "type": "boolean",
         "required": false
       },
+      "info": {
+        "title": "Show responses",
+        "type": "boolean",
+        "required": false
+      },
       "debug": {
         "title": "Use fake values without connecting",
         "type": "boolean",

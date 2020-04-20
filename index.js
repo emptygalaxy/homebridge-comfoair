@@ -97,6 +97,12 @@ class ComfoAirAccessory
 
         /**
          *
+         * @type {boolean}
+         */
+        this.info = this.config['info'] || false;
+
+        /**
+         *
          * @type {string}
          */
         this.deviceName = this.config['name'] || 'Fan';
@@ -220,7 +226,8 @@ class ComfoAirAccessory
         // set interval for updating
         this.intervalId = setInterval(this.update.bind(this), this.updateInterval * 1000);
 
-        this.log(config);
+        if(this.info)
+            this.log(config);
     }
 
     /**
@@ -340,7 +347,8 @@ class ComfoAirAccessory
              */
             (err, state) =>
             {
-                this.log('refreshTemperatureState callback', err, this.state.power);
+                if(this.info)
+                    this.log('refreshTemperatureState callback', err, this.state.power);
                 callback(err, (this.state.power === true ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE));
             });
     }
@@ -387,10 +395,10 @@ class ComfoAirAccessory
              */
             (err, state) =>
             {
-                this.log('this:', this);
-
                 let fanState = this.getFanStateFromState();
-                this.log('refreshTemperatureState callback', err, fanState);
+
+                if(this.info)
+                    this.log('refreshTemperatureState callback', err, fanState);
 
                 callback(err, fanState);
             });
@@ -441,7 +449,7 @@ class ComfoAirAccessory
      */
     setFanSpeed(value, callback)
     {
-        this.log('set fan on state: ' + value);
+        this.log('set fan speed: ' + value);
 
         let level = Math.round((value / this.maxFanSpeed) * this.maxLevel);
         this.setVentilationLevel(level,
@@ -515,7 +523,7 @@ class ComfoAirAccessory
      */
     setTargetTemperature(value, callback)
     {
-        this.log('set comfort temperature: ' + value);
+        this.log('set target temperature: ' + value);
 
         this.setTemperature(value,
             /**
@@ -550,7 +558,9 @@ class ComfoAirAccessory
              */
             (err, state) =>
             {
-                this.log('refreshTemperatureState callback', err, this.state.insideTemperature);
+                if(this.info)
+                    this.log('refreshTemperatureState callback', err, this.state.insideTemperature);
+
                 callback(err, this.state.insideTemperature);
             });
     }
@@ -634,7 +644,8 @@ class ComfoAirAccessory
              */
             (err, state) =>
             {
-                this.log('refreshTemperatureState callback', err, this.state.outsideTemperature);
+                if(this.info)
+                    this.log('refreshTemperatureState callback', err, this.state.outsideTemperature);
                 callback(err, this.state.outsideTemperature);
             });
     }
@@ -674,7 +685,8 @@ class ComfoAirAccessory
              * @param {FanState} state
              */
             {
-                this.log('refreshFilterState callback', err, this.state.filterOperatingHours);
+                if(this.info)
+                    this.log('refreshFilterState callback', err, this.state.filterOperatingHours);
 
                 let filterLifeLevel = Math.round((this.state.filterOperatingHours / this.maxFilterOperatingHours) * 100);
                 callback(err, filterLifeLevel);
@@ -696,7 +708,8 @@ class ComfoAirAccessory
              * @param {FanState} state
              */
             {
-                this.log('refreshFaults callback', err, this.state.replaceFilter);
+                if(this.info)
+                    this.log('refreshFaults callback', err, this.state.replaceFilter);
 
                 let filterChange = this.state.replaceFilter ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK;
                 callback(err, filterChange);
@@ -718,7 +731,8 @@ class ComfoAirAccessory
              * @param state
              */
             {
-                this.log('reset confirmed');
+                if(this.info)
+                    this.log('reset confirmed');
             });
     }
 
@@ -796,7 +810,8 @@ class ComfoAirAccessory
                 if(err) {
                     this.log('error setting level to ' + levelString);
                 } else {
-                    this.log('confirmation set level ('+levelString+')');
+                    if(this.info)
+                        this.log('confirmation set level ('+levelString+')');
 
                     // update state
                     this.state.level = level;
@@ -839,7 +854,8 @@ class ComfoAirAccessory
                     if(err) {
                         this.log('error setting comfort temperature to ' + temperature);
                     } else {
-                        this.log('confirmation set temperature ('+temperature+')');
+                        if(this.info)
+                            this.log('confirmation set temperature ('+temperature+')');
 
                         this.state.targetTemperature = temperature;
                     }
@@ -874,8 +890,10 @@ class ComfoAirAccessory
                     if (err) {
                         this.log(err.message);
                     } else {
-                        this.log("Got temperatures:");
-                        this.log(resp);
+                        if(this.info) {
+                            this.log("Got temperatures:");
+                            this.log(resp);
+                        }
 
                         // update states
                         this.state.outsideTemperature = resp.payload.outsideAir.value;
@@ -928,11 +946,15 @@ class ComfoAirAccessory
                     } else if(resp.valid === false) {
                         this.log(resp.error);
                     } else {
-                        this.log("Got levels:");
-                        this.log(resp);
+                        if(this.info) {
+                            this.log("Got levels:");
+                            this.log(resp);
+                        }
 
                         let level = (resp.payload.currentLevel.value - 1);
-                        this.log('level: ' + level);
+
+                        if(this.info)
+                            this.log('level: ' + level);
 
                         // update states
                         this.state.power = (level > this.offLevel);
@@ -995,8 +1017,10 @@ class ComfoAirAccessory
                     if (err) {
                         this.log(err.message);
                     } else {
-                        this.log("Got operating hours:");
-                        this.log(resp);
+                        if(this.info) {
+                            this.log("Got operating hours:");
+                            this.log(resp);
+                        }
 
                         // update states
                         this.state.filterOperatingHours = 0;
@@ -1005,6 +1029,7 @@ class ComfoAirAccessory
                         // update Characteristics
                         let filterChange = (this.state.replaceFilter) ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK;
                         this.filterService.getCharacteristic(Characteristic.FilterChangeIndication).updateValue(filterChange);
+
                         let filterLifeLevel = Math.round((this.state.filterOperatingHours / this.maxFilterOperatingHours) * 100);
                         this.filterService.getCharacteristic(Characteristic.FilterLifeLevel).updateValue(filterLifeLevel);
                     }
@@ -1016,12 +1041,14 @@ class ComfoAirAccessory
             if (callback != null) {
                 if(this.debug) {
 
-                    // update Characteristics
+                    // update states
                     this.state.filterOperatingHours = 0;
                     this.state.replaceFilter = false;
 
+                    // update Characteristics
                     let filterChange = (this.state.replaceFilter) ? Characteristic.FilterChangeIndication.CHANGE_FILTER : Characteristic.FilterChangeIndication.FILTER_OK;
                     this.filterService.getCharacteristic(Characteristic.FilterChangeIndication).updateValue(filterChange);
+
                     let filterLifeLevel = Math.round((this.state.filterOperatingHours / this.maxFilterOperatingHours) * 100);
                     this.filterService.getCharacteristic(Characteristic.FilterLifeLevel).updateValue(filterLifeLevel);
 
@@ -1051,8 +1078,10 @@ class ComfoAirAccessory
                     if (err) {
                         this.log(err.message);
                     } else {
-                        this.log("Got operating hours:");
-                        this.log(resp);
+                        if(this.info) {
+                            this.log("Got operating hours:");
+                            this.log(resp);
+                        }
 
                         // update states
                         this.state.filterOperatingHours = resp.payload.filter.value;
@@ -1100,8 +1129,10 @@ class ComfoAirAccessory
                     if (err) {
                         this.log(err.message);
                     } else {
-                        this.log("Got faults:");
-                        this.log(resp);
+                        if(this.info) {
+                            this.log("Got faults:");
+                            this.log(resp);
+                        }
 
                         // update states
                         this.state.replaceFilter = resp.payload.replaceFilter.value;
@@ -1117,7 +1148,6 @@ class ComfoAirAccessory
         } else {
             if (callback != null) {
                 if(this.debug) {
-
                     // update Characteristics
                     this.state.replaceFilter = Math.random() > 0.7;
 
