@@ -22,7 +22,7 @@
       },
       "baudRate": {
         "title": "Baud Rate",
-        "type": "number",
+        "type": "integer",
         "required": false
       },
       "minTemperature": {
@@ -37,17 +37,17 @@
       },
       "updateInterval": {
         "title": "Update interval",
-        "type": "number",
+        "type": "integer",
         "required": false
       },
       "setOffToLow": {
         "title": "Set off to low",
-        "type": "bool",
+        "type": "boolean",
         "required": false
       },
       "debug": {
         "title": "Use fake values without connecting",
-        "type": "bool",
+        "type": "boolean",
         "required": false
       }
     }

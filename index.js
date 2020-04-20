@@ -316,7 +316,7 @@ class ComfoAirAccessory
             .setProps({
                 minValue: 0,
                 maxValue: this.maxFanSpeed,
-                minStep: this.maxFanSpeed / this.maxLevel,
+                minStep: this.maxFanSpeed / (this.maxLevel - 1),
             })
             .on(CharacteristicEventTypes.GET, this.getFanSpeed.bind(this))
             .on(CharacteristicEventTypes.SET, this.setFanSpeed.bind(this));
@@ -355,8 +355,7 @@ class ComfoAirAccessory
         this.log('set fan on state: ' + value);
 
         this.state.power = value === Characteristic.Active.ACTIVE;
-        let speed = this.state.power ? this.maxLevel : this.offLevel;
-        let level = Math.round((speed / this.maxFanSpeed) * this.maxLevel);
+        let level = this.state.power ? this.maxLevel : this.offLevel;
 
         this.setVentilationLevel(level,
             /**
