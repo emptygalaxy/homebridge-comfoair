@@ -171,7 +171,7 @@ class ComfoAirAccessory
          *
          * @type {number}
          */
-        this.maxLevel = 4;
+        this.maxLevel = 3;
 
         /**
          *
@@ -316,7 +316,7 @@ class ComfoAirAccessory
             .setProps({
                 minValue: 0,
                 maxValue: this.maxFanSpeed,
-                minStep: this.maxFanSpeed / (this.maxLevel - 1),
+                minStep: this.maxFanSpeed / this.maxLevel,
             })
             .on(CharacteristicEventTypes.GET, this.getFanSpeed.bind(this))
             .on(CharacteristicEventTypes.SET, this.setFanSpeed.bind(this));
@@ -783,7 +783,7 @@ class ComfoAirAccessory
 
     /**
      * Set the ventilation level
-     * @param {number} level
+     * @param {number} level 0=away, 1=low, 2=middle, 3=high
      * @param {function(null|Error)} callback
      */
     setVentilationLevel(level, callback)
