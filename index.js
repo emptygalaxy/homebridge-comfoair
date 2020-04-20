@@ -323,7 +323,7 @@ class ComfoAirAccessory
             .setProps({
                 minValue: 0,
                 maxValue: this.maxFanSpeed,
-                minStep: this.maxFanSpeed / this.maxLevel,
+                minStep: 25, // should be (this.maxFanSpeed / this.maxLevel) but this messes with HomeKit interfaces when not using a somewhat rounded number
             })
             .on(CharacteristicEventTypes.GET, this.getFanSpeed.bind(this))
             .on(CharacteristicEventTypes.SET, this.setFanSpeed.bind(this));
@@ -385,7 +385,6 @@ class ComfoAirAccessory
     getCurrentFanState(callback)
     {
         this.log('get current fan state');
-        this.log('this:', this);
 
         this.refreshLevelState(
             /**
