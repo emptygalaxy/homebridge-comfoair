@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 /**
  * @type {Comfoair}
@@ -30,16 +30,15 @@ const VentilationLevel = {
     HIGH: 3,
 };
 
+// const HAPNodeJS = require('hap-nodejs');
+
 /**
  * @type HAPNodeJS.Service
  */
 let Service;
 
-
 /**
- * @typedef {import('node_modules/hap-nodejs/src/lib/Characteristic.ts').Characteristic} Characteristic
- * #@type HAPNodeJS.Characteristic
- * @type {import('./node_modules/hap-nodejs/src/lib/Characteristic.ts').Characteristic}
+ * @type HAPNodeJS.Characteristic
  */
 let Characteristic;
 
@@ -161,23 +160,45 @@ class ComfoAirAccessory
          * @type {boolean}
          */
         this.setOffToLow = this.config['setOffToLow'] || true;
-        this.offSpeed = (this.setOffToLow ? 1 : 0);
 
         /**
          *
-         * @typedef {{outsideTemperature: number, targetTemperature: number, insideTemperature: number, power: boolean, speed: number, filterOperatingHours: number, replaceFilter: boolean}} FanState
+         * @type {number}
+         */
+        this.offLevel = (this.setOffToLow ? 1 : 0);
+
+        /**
+         *
+         * @type {number}
+         */
+        this.maxLevel = 4;
+
+        /**
+         *
+         * @type {number}
+         */
+        this.maxFanSpeed = 100;
+
+        /**
+         *
+         * @type {number}
+         */
+        this.historyLength = this.config['historyLength'] || 4032;
+
+        /**
+         *
+         * @typedef {{outsideTemperature: number, targetTemperature: number, insideTemperature: number, power: boolean, level: number, filterOperatingHours: number, replaceFilter: boolean}} FanState
          * @type {FanState}
          */
         this.state = {
             power: false,
-            speed: 0,
+            level: 0,
             targetTemperature: 22,
             insideTemperature: 20,
             outsideTemperature: 15,
             filterOperatingHours: 0,
             replaceFilter: false,
         };
-
 
         /**
          *
@@ -226,7 +247,9 @@ class ComfoAirAccessory
         services.push(this.getThermostatService());
         services.push(this.getOutsideTemperatureService());
         services.push(this.getFilterService());
-        services.push(this.getLoggingService());
+
+        if(this.historyLength > 0)
+            services.push(this.getLoggingService());
 
         services.push(this.getInformationService());
 
@@ -235,7 +258,7 @@ class ComfoAirAccessory
 
     /**
      *
-     * @return {Service.AccessoryInformation}
+     * @return {Service}
      */
     getInformationService()
     {
@@ -264,7 +287,7 @@ class ComfoAirAccessory
          *
          * @type {FakeGatoHistoryService}
          */
-        this.loggingService = new FakeGatoHistoryService('thermo', this, {size: 4032, disableTimer: true});
+        this.loggingService = new FakeGatoHistoryService('thermo', this, this.historyLength);
 
         return this.loggingService;
     }
@@ -291,9 +314,9 @@ class ComfoAirAccessory
         // Rotation speed
         this.fanService.getCharacteristic(Characteristic.RotationSpeed)
             .setProps({
-                minValue: this.offSpeed,
-                maxValue: 3,
-                minStep: 1,
+                minValue: 0,
+                maxValue: this.maxFanSpeed,
+                minStep: 25,
             })
             .on(CharacteristicEventTypes.GET, this.getFanSpeed.bind(this))
             .on(CharacteristicEventTypes.SET, this.setFanSpeed.bind(this));
@@ -331,16 +354,11 @@ class ComfoAirAccessory
     {
         this.log('set fan on state: ' + value);
 
-        let defaultValue = this.offSpeed + 1;
-
         this.state.power = value === Characteristic.Active.ACTIVE;
+        let speed = this.state.power ? this.maxLevel : this.offLevel;
+        let level = Math.round((speed / this.maxFanSpeed) * this.maxLevel);
 
-        if(this.state.speed === this.offSpeed)
-            this.state.speed = defaultValue;
-
-        let speed = this.state.power ? defaultValue : this.offSpeed;
-
-        this.setVentilationSpeed(speed,
+        this.setVentilationLevel(level,
             /**
              *
              * @param {null|Error} err
@@ -386,10 +404,10 @@ class ComfoAirAccessory
     getFanStateFromState()
     {
         if(this.state.power) {
-            if(this.state.speed > this.offSpeed + 1)
+            if(this.state.level > this.offSpeed + 1)
                 return Characteristic.CurrentFanState.BLOWING_AIR;
 
-            if(this.state.speed > this.offSpeed)
+            if(this.state.level > this.offSpeed)
                 return Characteristic.CurrentFanState.IDLE;
         }
 
@@ -412,7 +430,8 @@ class ComfoAirAccessory
              */
             (err, state) =>
             {
-                callback(err, this.state.speed);
+                let speed = (this.state.level / this.maxLevel) * this.maxFanSpeed;
+                callback(err, speed);
             });
     }
 
@@ -425,7 +444,8 @@ class ComfoAirAccessory
     {
         this.log('set fan on state: ' + value);
 
-        this.setVentilationSpeed(value,
+        let level = Math.round((value / this.maxFanSpeed) * this.maxLevel);
+        this.setVentilationLevel(level,
             /**
              *
              * @param {null|Error} err
@@ -439,7 +459,7 @@ class ComfoAirAccessory
 
     /**
      *
-     * @return {Service.Thermostat}
+     * @return {Service}
      */
     getThermostatService()
     {
@@ -581,7 +601,7 @@ class ComfoAirAccessory
 
     /**
      *
-     * @return {Service.TemperatureSensor}
+     * @return {Service}
      */
     getOutsideTemperatureService()
     {
@@ -623,7 +643,7 @@ class ComfoAirAccessory
 
     /**
      *
-     * @return {Service.FilterMaintenance}
+     * @return {Service}
      */
     getFilterService()
     {
@@ -743,62 +763,55 @@ class ComfoAirAccessory
         this.log('');
         this.log('Interval update');
 
-        // if(this.ventilation == null && this.debug) {
-        //     this.state.insideTemperature += (this.state.targetTemperature - this.state.insideTemperature) / 3;
-        //
-        //     this.state.power = Math.random() > 0.2;
-        //     this.state.speed = Math.round(Math.random() * 3);
-        // }
+        this.refreshTemperatureState((err, state) => {
+            this.log('Inside temperature: ' + this.state.insideTemperature);
 
-        // this.refreshTemperatureState((err, state) => {
-        //     this.log('Inside temperature: ' + this.state.insideTemperature);
-        // });
+            if(this.loggingService)
+                this.loggingService.addEntry({time: Math.round(new Date().getTime()/1000), currentTemp: this.state.outsideTemperature, setTemp: this.state.targetTemperature, valvePosition: 0});
+        });
         this.refreshLevelState((err, state) => {
             this.log('Power='+this.state.power);
-            this.log('Speed: ' + this.state.speed);
+            this.log('Speed: ' + this.state.level);
         });
-        // this.refreshFilterState((err, state) => {
-        //     this.log('filterOperatingHours='+this.state.filterOperatingHours);
-        //     this.log('FilterLifeLevel='+Math.round((this.state.filterOperatingHours / this.maxFilterOperatingHours) * 100));
-        // });
-        // this.refreshFaults((err, state) => {
-        //     this.log('replaceFilter='+this.state.replaceFilter);
-        // });
-
-        this.loggingService.addEntry({time: Math.round(new Date().getTime()/1000), currentTemp: this.state.outsideTemperature, setTemp: this.state.targetTemperature, valvePosition: 0});
+        this.refreshFilterState((err, state) => {
+            this.log('filterOperatingHours='+this.state.filterOperatingHours);
+            this.log('FilterLifeLevel='+Math.round((this.state.filterOperatingHours / this.maxFilterOperatingHours) * 100));
+        });
+        this.refreshFaults((err, state) => {
+            this.log('replaceFilter='+this.state.replaceFilter);
+        });
     }
 
     /**
-     * Set the ventilation speed
-     * @param {number} speed
+     * Set the ventilation level
+     * @param {number} level
      * @param {function(null|Error)} callback
      */
-    setVentilationSpeed(speed, callback)
+    setVentilationLevel(level, callback)
     {
-        let level = ComfoAirAccessory.getLevel(speed);
-        this.log('set level to ' + level);
+        let levelString = ComfoAirAccessory.getLevelString(level);
+        this.log('set level to ' + levelString);
 
         if(this.ventilation != null) {
-            this.ventilation.setLevel(level, (err, resp) => {
+            this.ventilation.setLevel(levelString, (err, resp) => {
                 if(err) {
-                    this.log('error setting level to ' + level);
+                    this.log('error setting level to ' + levelString);
                 } else {
-                    this.log('confirmation set level ('+level+')');
+                    this.log('confirmation set level ('+levelString+')');
 
                     // update state
-                    if(speed > 0)
-                        this.state.speed = speed;
-                    this.state.power = speed > this.offSpeed;
+                    this.state.level = level;
+                    this.state.power = this.state.level > this.offLevel;
                 }
 
                 callback.apply(this, [err]);
             });
         } else {
             if(this.debug) {
+
                 // update state
-                if(speed > 0)
-                    this.state.speed = speed;
-                this.state.power = speed > 0;
+                this.state.level = level;
+                this.state.power = this.state.level > this.offLevel;
 
                 callback.apply(this, [null]);
             } else {
@@ -923,19 +936,18 @@ class ComfoAirAccessory
                         this.log('level: ' + level);
 
                         // update states
-                        this.state.power = (level > this.offSpeed);
-                        this.state.speed = level;
-
+                        this.state.power = (level > this.offLevel);
+                        this.state.level = level;
 
                         // update Characteristics
                         let fanActive = this.state.power;
-                        this.fanService.getCharacteristic(Characteristic.Active).updateValue(fanActive);
+                        this.fanService.getCharacteristic(Characteristic.Active).updateValue(fanActive ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE);
 
                         let fanState = this.getFanStateFromState();
                         this.fanService.getCharacteristic(Characteristic.CurrentFanState).updateValue(fanState);
 
-                        let rotationSpeed = this.state.speed;
-                        this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(rotationSpeed)
+                        let rotationSpeed = (this.state.level / this.maxLevel) * this.maxFanSpeed;
+                        this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(rotationSpeed);
                     }
 
                     if (callback != null)
@@ -944,17 +956,15 @@ class ComfoAirAccessory
         } else {
             if (callback != null) {
                 if(this.debug) {
-
                     // update Characteristics
-                    let speed = this.state.speed;
-                    let fanActive = this.state.power && speed > 0;
-                    this.fanService.getCharacteristic(Characteristic.Active).updateValue(fanActive);
+                    let fanActive = this.state.power;
+                    this.fanService.getCharacteristic(Characteristic.Active).updateValue(fanActive ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE);
 
                     let fanState = this.getFanStateFromState();
                     this.fanService.getCharacteristic(Characteristic.CurrentFanState).updateValue(fanState);
 
-                    let rotationSpeed = speed;
-                    this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(rotationSpeed)
+                    let rotationSpeed = (this.state.level / this.maxLevel) * this.maxFanSpeed;
+                    this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(rotationSpeed);
 
                     callback.apply(this, [null, this.state]);
                 } else {
@@ -1125,29 +1135,17 @@ class ComfoAirAccessory
 
     /**
      *
-     * @param {number} speed
+     * @param {number} level
      * @return {string}
      */
-    static getLevel(speed)
+    static getLevelString(level)
     {
-        speed = Math.round(speed);
+        level = Math.round(level);
 
-        let levels = ['away', 'low', 'middle', 'high'];
-        if(speed >= 0 && speed < levels.length)
-            return levels[speed];
+        if(level >= 0 && level < 4)
+            return VentilationLevel[level];
 
-        return levels[0];
-    }
-
-    /**
-     *
-     * @param {string} level
-     * @return {number}
-     */
-    static getSpeed(level)
-    {
-        let levels = ['away', 'low', 'middle', 'high'];
-        return levels.indexOf(level);
+        return VentilationLevel[VentilationLevel.AWAY];
     }
 
     /**
