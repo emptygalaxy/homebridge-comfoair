@@ -1,22 +1,20 @@
-import {ServiceHandler} from "./ServiceHandler";
-import {Service} from "hap-nodejs";
-import {ComfoAirAccessory} from "./ComfoAirAccessory";
-import {ComfoAirState} from "./ComfoAirState";
-import {Logger} from "homebridge/lib/logger";
-import {API} from "homebridge/lib/api";
+import {ServiceHandler} from './ServiceHandler';
+import { Service } from 'homebridge';
+import {ComfoAirAccessory} from './ComfoAirAccessory';
+import {ComfoAirState} from './ComfoAirState';
+import {Logger} from 'homebridge/lib/logger';
+import {API} from 'homebridge/lib/api';
 
-export class LoggingHandler implements ServiceHandler
-{
+export class LoggingHandler implements ServiceHandler {
     private readonly _log: Logger;
     private readonly _api: API;
     private readonly _accessory: ComfoAirAccessory;
-    private _historyLength: number;
+    private readonly _historyLength: number;
 
     // Services
     private readonly _loggingService;
 
-    constructor(log: Logger, api: API, accessory: ComfoAirAccessory, historyLength: number)
-    {
+    constructor(log: Logger, api: API, accessory: ComfoAirAccessory, historyLength: number) {
         this._log = log;
         this._api = api;
         this._accessory = accessory;
@@ -25,31 +23,27 @@ export class LoggingHandler implements ServiceHandler
         this._loggingService = this.createService();
     }
 
-    private createService(): Service
-    {
+    private createService(): Service {
         const FakeGatoHistoryService = require('fakegato-history')(this._api);
 
-        let loggingType: string = 'thermo';
-
+        const loggingType = 'thermo';
         return new FakeGatoHistoryService(loggingType, this._accessory, this._historyLength);
     }
 
-    public handleState(state: ComfoAirState): void
-    {
+    public handleState(state: ComfoAirState): void {
         // update Characteristics
-        let date = new Date();
-        let time = Math.round(date.getTime() / 1000);
-        let entry = {
+        const date = new Date();
+        const time = Math.round(date.getTime() / 1000);
+        const entry = {
             time: time,
             currentTemp: state.outsideTemperature,
             setTemp: state.targetTemperature,
-            valvePosition: 0
+            valvePosition: 0,
         };
         this._loggingService.addEntry(entry);
     }
 
-    public getService(): Service
-    {
+    public getService(): Service {
         return this._loggingService;
     }
 }

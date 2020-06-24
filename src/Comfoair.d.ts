@@ -1,28 +1,29 @@
-import {TemperaturesResponse} from "./types/Temperatures";
-import {ComfoAirSetResponse} from "./types/ComfoAirResponse";
-import {BootloaderVersionResponse} from "./types/BootloaderVersionResponse";
-import {FirmwareVersionPayload} from "./types/FirmwareVersion";
-import {FanStateResponse} from "./types/FanState";
-import {FlapStateResponse} from "./types/FlapState";
-import {OperatingHoursResponse} from "./types/OperatingHours";
-import {VentilationLevelResponse} from "./types/VentilationLevel";
-import {TemperatureStatesResponse} from "./types/TemperatureStates";
-import {FaultsResponse} from "./types/Faults";
+import {TemperaturesResponse} from './types/Temperatures';
+import {ComfoAirSetResponse} from './types/ComfoAirResponse';
+import {BootloaderVersionResponse} from './types/BootloaderVersionResponse';
+import {FirmwareVersionPayload} from './types/FirmwareVersion';
+import {FanStateResponse} from './types/FanState';
+import {FlapStateResponse} from './types/FlapState';
+import {OperatingHoursResponse} from './types/OperatingHours';
+import {VentilationLevelResponse} from './types/VentilationLevel';
+import {TemperatureStatesResponse} from './types/TemperatureStates';
+import {FaultsResponse} from './types/Faults';
 
 export interface Comfoair {
-    constructor(config?: ComfoairConfig);
+    // constructor(config?: ComfoairConfig);
 
     on(event: string, callback: (err?: Error)=>void): void;
 
-    write(command: object, callback: (err: Error|undefined) => void): void;
-    runCommand(commandName: string, params: object, callback: (err: Error|undefined, response: object) => void): void;
+    write(command: Command, callback: (err: Error|undefined) => void): void;
+    runCommand(commandName: string, params: {[key: string]: string},
+        callback: (err: Error|undefined, response: ComfoAirSetResponse) => void): void;
 
-    getTemperatures(callback: (err: Error|undefined, response: TemperaturesResponse) => void): void;
 
     setLevel(level: string|number, callback: (err: Error|undefined, response: ComfoAirSetResponse) => void): void;
     setComfortTemperature(temperature: number, callback: (err: Error|undefined, response: ComfoAirSetResponse) => void): void;
 
-    reset(resetFaults: boolean, resetSettings: boolean, runSelfTest: boolean, resetFilterTime: boolean, callback: (err: Error|undefined, ComfoAirSetResponse) => void): void;
+    reset(resetFaults: boolean, resetSettings: boolean, runSelfTest: boolean, resetFilterTime: boolean,
+          callback: (err: Error|undefined, ComfoAirSetResponse) => void): void;
 
     getBootloaderVersion(callback: (err: Error|undefined, response: BootloaderVersionResponse) => void): void;
     getFirmwareVersion(callback: (err: Error|undefined, response: FirmwareVersionPayload) => void): void;
@@ -39,4 +40,10 @@ export interface ComfoairConfig
 {
     port: string;
     baud?: number;
+}
+
+export interface Command
+{
+    name: string;
+    params: {[key: string]: string};
 }

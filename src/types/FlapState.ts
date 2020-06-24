@@ -1,5 +1,4 @@
-import {ComfoAirPayload, ComfoAirResponse, LabeledUnitNumberValue} from "./ComfoAirResponse";
-import {FanStatePayload} from "./FanState";
+import {ComfoAirPayload, ComfoAirResponse, LabeledUnitNumberValue} from './ComfoAirResponse';
 
 export interface FlapStateResponse extends ComfoAirResponse
 {

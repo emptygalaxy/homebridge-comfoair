@@ -1,4 +1,4 @@
-import {AccessoryConfig} from "homebridge/lib/server";
+import {AccessoryConfig} from 'homebridge/lib/server';
 
 export interface ComfoAirConfig extends AccessoryConfig
 {

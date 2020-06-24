@@ -1,4 +1,4 @@
-import {ComfoAirPayload, ComfoAirResponse, LabeledUnitNumberValue} from "./ComfoAirResponse";
+import {ComfoAirPayload, ComfoAirResponse, LabeledUnitNumberValue} from './ComfoAirResponse';
 
 export interface TemperatureStatesResponse extends ComfoAirResponse
 {

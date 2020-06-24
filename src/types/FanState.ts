@@ -2,7 +2,7 @@ import {
     ComfoAirPayload,
     ComfoAirResponse,
     LabeledUnitNumberValue
-} from "./ComfoAirResponse";
+} from './ComfoAirResponse';
 
 export interface FanStateResponse extends ComfoAirResponse
 {

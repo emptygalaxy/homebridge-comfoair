@@ -1,4 +1,4 @@
-import {VentilationLevel} from "./VentilationLevel";
+import {VentilationLevel} from './VentilationLevel';
 
 export interface ComfoAirState
 {

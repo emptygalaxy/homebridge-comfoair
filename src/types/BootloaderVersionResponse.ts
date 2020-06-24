@@ -1,4 +1,4 @@
-import {ComfoAirPayload, ComfoAirResponse, LabeledNumberValue, LabeledStringValue} from "./ComfoAirResponse";
+import {ComfoAirPayload, ComfoAirResponse, LabeledNumberValue, LabeledStringValue} from './ComfoAirResponse';
 
 export interface BootloaderVersionResponse extends ComfoAirResponse
 {

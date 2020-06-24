@@ -1,4 +1,4 @@
-import {Service} from "hap-nodejs";
+import { Service } from 'homebridge';
 
 export interface ServiceHandler
 {

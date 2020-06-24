@@ -4,7 +4,7 @@ import {
     LabeledBooleanValue,
     LabeledNumberValue,
     LabeledUnitNumberValue
-} from "./ComfoAirResponse";
+} from './ComfoAirResponse';
 
 export interface VentilationLevelResponse extends ComfoAirResponse
 {
