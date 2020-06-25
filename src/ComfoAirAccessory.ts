@@ -23,7 +23,6 @@ import {FaultsResponse} from './types/Faults';
 import {LoggingHandler} from './LoggingHandler';
 const Comfoair = require('comfoair');
 
-
 export class ComfoAirAccessory implements AccessoryPlugin {
     private readonly log: Logger;
     private readonly config: ComfoAirConfig;
@@ -119,6 +118,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
         this._filterHandler = new FilterHandler(this.log, this.api, this, this.maxFilterOperatingHours);
         this._loggingHandler = new LoggingHandler(this.log, this.api, this, this.historyLength);
 
+        this.log.info('Connecting to ', this.port);
         this.ventilation = new Comfoair({
             port: this.port,
             baud: this.baudRate,
@@ -218,7 +218,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
         err: Error|undefined, resp: ComfoAirSetResponse): void {
 
         if(err) {
-            this.log.info('error setting level to ' + level);
+            this.log.error('error setting level to ' + level);
         } else {
             if(this.info) {
                 this.log.info('confirmation set level (' + level + ')', resp);
@@ -253,7 +253,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
         callback: (state: ComfoAirState, error?: Error) => void, err?: Error): void {
 
         if(err) {
-            this.log.info('error setting comfort temperature to ' + temperature);
+            this.log.error('error setting comfort temperature to ' + temperature);
         } else {
             if(this.info) {
                 this.log.info('confirmation set temperature (' + temperature + ')');
@@ -293,7 +293,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
         callback?: (state: ComfoAirState, error?: Error) => void, err?: Error) {
 
         if(err) {
-            this.log.info(err.message);
+            this.log.error(err.message);
         } else {
             if(this.info) {
                 this.log.info('Got temperatures:');
@@ -301,7 +301,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
             }
 
             // characteristics
-            if(response && response.valid) {
+            if(response && response.valid && response.payload && response.payload.outsideAir && response.payload.outgoingAir) {
                 this.state.outsideTemperature = response.payload.outsideAir.value;
                 this.state.insideTemperature = response.payload.outgoingAir.value;
             }
@@ -352,7 +352,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
                 this.log.info('Got levels:', response);
             }
 
-            if(response && response.payload && response.valid) {
+            if(response && response.valid && response.payload && response.payload.currentLevel) {
                 const speed: number = response.payload.currentLevel.value - 1;
                 const level: VentilationLevel = ComfoAirAccessory.getVentilationLevel(speed);
 
@@ -448,7 +448,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
                 this.log.info('Got operating hours', response);
             }
 
-            if(response && response.payload && response.valid) {
+            if(response && response.valid && response.payload && response.payload.filter) {
                 // update states
                 this.state.filterOperatingHours = response.payload.filter.value;
 
@@ -491,7 +491,7 @@ export class ComfoAirAccessory implements AccessoryPlugin {
                 this.log.info('Got faults', response);
             }
 
-            if(response && response.payload && response.valid) {
+            if(response && response.valid && response.payload && response.payload.replaceFilter) {
                 // update states
                 this.state.replaceFilter = response.payload.replaceFilter.value;
 
