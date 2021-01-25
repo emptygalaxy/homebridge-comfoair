@@ -1,4 +1,3 @@
-import { HAP } from 'homebridge';
 import { API } from 'homebridge/lib/api';
 import { ComfoAirAccessory } from './ComfoAirAccessory';
 
@@ -24,13 +23,10 @@ import { ComfoAirAccessory } from './ComfoAirAccessory';
  * of the api object, which can be acquired for example in the initializer function. This reference can be stored
  * like this for example and used to access all exported variables and classes from HAP-NodeJS.
  */
-let hap: HAP;
 
 /*
  * Initializer function called when the plugin is loaded.
  */
 export = (api: API) => {
-    hap = api.hap;
-
     api.registerAccessory('homebridge-comfoair', 'ComfoAir', ComfoAirAccessory);
 };

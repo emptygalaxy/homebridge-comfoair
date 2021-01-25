@@ -21,6 +21,7 @@ import Timeout = NodeJS.Timeout;
 import {OperatingHoursResponse} from './types/OperatingHours';
 import {FaultsResponse} from './types/Faults';
 import {LoggingHandler} from './LoggingHandler';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Comfoair = require('comfoair');
 
 export class ComfoAirAccessory implements AccessoryPlugin {

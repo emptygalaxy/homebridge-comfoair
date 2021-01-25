@@ -103,7 +103,7 @@ export class FanHandler implements ServiceHandler {
         this._log.info('set fan on state: ' + value);
 
         if(this._updateValueOnActiveChange) {
-            const level: VentilationLevel = this._accessory.getState().power ? this._maxLevel : this._offLevel;
+            const level: VentilationLevel = value === this._api.hap.Characteristic.Active.ACTIVE ? this._maxLevel : this._offLevel;
 
             this._accessory.setVentilationLevel(level,
                 (state: ComfoAirState, error?: Error) => {

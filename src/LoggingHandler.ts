@@ -5,6 +5,8 @@ import {ComfoAirState} from './ComfoAirState';
 import {Logger} from 'homebridge/lib/logger';
 import {API} from 'homebridge/lib/api';
 
+import fakegato_history from 'fakegato-history';
+
 export class LoggingHandler implements ServiceHandler {
     private readonly _log: Logger;
     private readonly _api: API;
@@ -24,7 +26,7 @@ export class LoggingHandler implements ServiceHandler {
     }
 
     private createService(): Service {
-        const FakeGatoHistoryService = require('fakegato-history')(this._api);
+        const FakeGatoHistoryService = fakegato_history(this._api);
 
         const loggingType = 'thermo';
         return new FakeGatoHistoryService(loggingType, this._accessory, this._historyLength);
