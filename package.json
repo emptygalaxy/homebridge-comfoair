@@ -9,7 +9,7 @@
     "homebridge": ">0.4.53"
   },
   "dependencies": {
-    "comfoair": "^1.0.3",
+    "comfoair": "^1.0.4",
     "fakegato-history": "^0.5.6"
   },
   "devDependencies": {
