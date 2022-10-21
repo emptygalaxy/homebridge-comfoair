@@ -1,6 +1,5 @@
-import { Service } from 'homebridge';
+import type {Service} from 'homebridge';
 
-export interface ServiceHandler
-{
-    getService(): Service;
+export interface ServiceHandler {
+  getService(): Service;
 }

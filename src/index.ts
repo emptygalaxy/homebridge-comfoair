@@ -1,5 +1,5 @@
-import { API } from 'homebridge/lib/api';
-import { ComfoAirAccessory } from './ComfoAirAccessory';
+import type {API} from 'homebridge';
+import {ComfoAirAccessory} from './ComfoAirAccessory';
 
 /*
  * IMPORTANT NOTICE
@@ -28,5 +28,5 @@ import { ComfoAirAccessory } from './ComfoAirAccessory';
  * Initializer function called when the plugin is loaded.
  */
 export = (api: API) => {
-    api.registerAccessory('homebridge-comfoair', 'ComfoAir', ComfoAirAccessory);
+  api.registerAccessory('homebridge-comfoair', 'ComfoAir', ComfoAirAccessory);
 };

@@ -1,0 +1,28 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "0A:12:34:45:56:67",
+        "port": 51541,
+        "pin": "000-01-111",
+        "advertiser": "bonjour-hap"
+    },
+    "accessories": [
+        {
+            "name": "Test",
+            "port": "/dev/usbserial",
+            "baudRate": 9600,
+            "minTemperature": 10,
+            "maxTemperature": 40,
+            "setOffToLow": true,
+            "debug": false,
+            "accessory": "ComfoAir"
+        }
+    ],
+    "platforms": [
+        {
+            "name": "Config",
+            "port": 8581,
+            "platform": "config"
+        }
+    ]
+}

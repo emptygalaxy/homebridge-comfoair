@@ -1,98 +1,153 @@
 import {ServiceHandler} from './ServiceHandler';
-import { Service, CharacteristicValue, CharacteristicSetCallback,
-    CharacteristicGetCallback, CharacteristicEventTypes } from 'homebridge';
+import type {
+  Service,
+  CharacteristicValue,
+  CharacteristicSetCallback,
+  CharacteristicGetCallback,
+  Logger,
+  API,
+} from 'homebridge';
+import {CharacteristicEventTypes} from 'homebridge';
 import {ComfoAirAccessory} from './ComfoAirAccessory';
 import {ComfoAirState} from './ComfoAirState';
-import {Logger} from 'homebridge/lib/logger';
-import {API} from 'homebridge/lib/api';
 
 export class FilterHandler implements ServiceHandler {
-    private readonly _log: Logger;
-    private readonly _api: API;
-    private readonly _accessory: ComfoAirAccessory;
+  private readonly _log: Logger;
+  private readonly _api: API;
+  private readonly _accessory: ComfoAirAccessory;
 
-    private readonly _info: boolean = true;
+  private readonly _info: boolean = true;
 
-    private readonly _maxFilterOperatingHours: number;
+  private readonly _maxFilterOperatingHours: number;
 
-    // Services
-    private readonly _filterService: Service;
+  // Services
+  private readonly _filterService: Service;
 
-    constructor(log: Logger, api: API, accessory: ComfoAirAccessory, maxFilterOperatingHours: number) {
-        this._log = log;
-        this._api = api;
-        this._accessory = accessory;
-        this._maxFilterOperatingHours = maxFilterOperatingHours;
+  constructor(
+    log: Logger,
+    api: API,
+    accessory: ComfoAirAccessory,
+    maxFilterOperatingHours: number
+  ) {
+    this._log = log;
+    this._api = api;
+    this._accessory = accessory;
+    this._maxFilterOperatingHours = maxFilterOperatingHours;
 
-        this._filterService = this.createService();
-    }
+    this._filterService = this.createService();
+  }
 
-    private createService(): Service {
-        const filterService = new this._api.hap.Service.FilterMaintenance();
+  private createService(): Service {
+    const Characteristic = this._api.hap.Characteristic;
+    const Service = this._api.hap.Service;
 
-        filterService.setCharacteristic(this._api.hap.Characteristic.Name, 'Filter');
-        filterService.getCharacteristic(this._api.hap.Characteristic.FilterLifeLevel)
-            .on(CharacteristicEventTypes.GET, this.getFilterLifeLevel.bind(this));
-        filterService.getCharacteristic(this._api.hap.Characteristic.FilterChangeIndication)
-            .on(CharacteristicEventTypes.GET, this.getFilterChangeIndication.bind(this));
-        filterService.getCharacteristic(this._api.hap.Characteristic.ResetFilterIndication)
-            .on(CharacteristicEventTypes.SET, this.setResetFilterIndication.bind(this));
+    const filterService = new Service.FilterMaintenance();
 
-        return filterService;
-    }
+    filterService.setCharacteristic(Characteristic.Name, 'Filter');
+    filterService
+      .getCharacteristic(Characteristic.FilterLifeLevel)
+      .on(CharacteristicEventTypes.GET, this.getFilterLifeLevel.bind(this));
+    filterService
+      .getCharacteristic(Characteristic.FilterChangeIndication)
+      .on(
+        CharacteristicEventTypes.GET,
+        this.getFilterChangeIndication.bind(this)
+      );
+    filterService
+      .getCharacteristic(Characteristic.ResetFilterIndication)
+      .on(
+        CharacteristicEventTypes.SET,
+        this.setResetFilterIndication.bind(this)
+      );
 
-    public handleState(state: ComfoAirState): void {
-        // update Characteristics
-        const filterChange = (state.replaceFilter) ? this._api.hap.Characteristic.FilterChangeIndication.CHANGE_FILTER
-            : this._api.hap.Characteristic.FilterChangeIndication.FILTER_OK;
-        this._filterService.getCharacteristic(this._api.hap.Characteristic.FilterChangeIndication).updateValue(filterChange);
+    return filterService;
+  }
 
-        const filterLifeLevel = Math.round((state.filterOperatingHours / this._maxFilterOperatingHours) * 100);
-        this._filterService.getCharacteristic(this._api.hap.Characteristic.FilterLifeLevel).updateValue(filterLifeLevel);
-    }
+  public handleState(state: ComfoAirState): void {
+    const Characteristic = this._api.hap.Characteristic;
+    // update Characteristics
+    const filterChange = state.replaceFilter
+      ? Characteristic.FilterChangeIndication.CHANGE_FILTER
+      : Characteristic.FilterChangeIndication.FILTER_OK;
+    this._filterService
+      .getCharacteristic(Characteristic.FilterChangeIndication)
+      .updateValue(filterChange);
 
-    public getService(): Service {
-        return this._filterService;
-    }
+    const filterLifeLevel = FilterHandler.calculateFilterLifeLevel(
+      state,
+      this._maxFilterOperatingHours
+    );
 
-    private getFilterLifeLevel(callback: CharacteristicGetCallback) {
-        this._log.info('get filter life level');
+    this._filterService
+      .getCharacteristic(Characteristic.FilterLifeLevel)
+      .updateValue(filterLifeLevel);
+  }
 
-        this._accessory.refreshFilterState((state: ComfoAirState, error?: Error) =>{
-            if(this._info) {
-                this._log.info('refreshFilterState callback', error, state.filterOperatingHours);
-            }
+  public getService(): Service {
+    return this._filterService;
+  }
 
-            const filterLife: number = state.filterOperatingHours / this._maxFilterOperatingHours;
-            const filterLifeLevel: CharacteristicValue = Math.round(filterLife * 100);
-            callback(error, filterLifeLevel);
-        });
-    }
+  private getFilterLifeLevel(callback: CharacteristicGetCallback) {
+    this._log.info('get filter life level');
 
-    private getFilterChangeIndication(callback: CharacteristicGetCallback) {
-        this._log.info('get filter change indication');
+    this._accessory.refreshFilterState(
+      (state: ComfoAirState, error?: Error) => {
+        if (this._info) {
+          this._log.info(
+            'refreshFilterState callback',
+            error,
+            state.filterOperatingHours
+          );
+        }
 
-        this._accessory.refreshFaults((state: ComfoAirState, error?: Error) => {
-            if(this._info) {
-                this._log.info('refreshFaults callback', error, state.replaceFilter);
-            }
+        const filterLifeLevel = FilterHandler.calculateFilterLifeLevel(
+          state,
+          this._maxFilterOperatingHours
+        );
+        callback(error, filterLifeLevel);
+      }
+    );
+  }
 
-            const filterChange: CharacteristicValue = state.replaceFilter ?
-                this._api.hap.Characteristic.FilterChangeIndication.CHANGE_FILTER :
-                this._api.hap.Characteristic.FilterChangeIndication.FILTER_OK;
-            callback(error, filterChange);
-        });
-    }
+  private static calculateFilterLifeLevel(
+    state: {filterOperatingHours: number},
+    maxFilterOperatingHours: number
+  ): CharacteristicValue {
+    return Math.min(
+      100,
+      Math.round((state.filterOperatingHours / maxFilterOperatingHours) * 100)
+    );
+  }
 
-    private setResetFilterIndication(callback: CharacteristicSetCallback) {
-        this._log.info('reset filter life level');
+  private getFilterChangeIndication(callback: CharacteristicGetCallback) {
+    const Characteristic = this._api.hap.Characteristic;
 
-        this._accessory.resetFilter((state: ComfoAirState, error?: Error) => {
-            if(this._info) {
-                this._log.info('reset confirmed');
-            }
+    this._log.info('get filter change indication');
 
-            callback(error);
-        });
-    }
+    this._accessory.refreshFaults((state: ComfoAirState, error?: Error) => {
+      if (this._info) {
+        this._log.info('refreshFaults callback', error, state.replaceFilter);
+      }
+
+      const filterChange: CharacteristicValue = state.replaceFilter
+        ? Characteristic.FilterChangeIndication.CHANGE_FILTER
+        : Characteristic.FilterChangeIndication.FILTER_OK;
+      callback(error, filterChange);
+    });
+  }
+
+  private setResetFilterIndication(
+    value: CharacteristicValue,
+    callback: CharacteristicSetCallback
+  ) {
+    this._log.info('reset filter life level', value);
+
+    this._accessory.resetFilter((state: ComfoAirState, error?: Error) => {
+      if (this._info) {
+        this._log.info('reset confirmed');
+      }
+
+      callback(error);
+    });
+  }
 }

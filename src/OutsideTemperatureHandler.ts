@@ -1,57 +1,77 @@
 import {ServiceHandler} from './ServiceHandler';
-import { Service, CharacteristicGetCallback, CharacteristicEventTypes } from 'homebridge';
+import type {Service, CharacteristicGetCallback, Logger, API} from 'homebridge';
+import {CharacteristicEventTypes} from 'homebridge';
 import {ComfoAirAccessory} from './ComfoAirAccessory';
 import {ComfoAirState} from './ComfoAirState';
-import {Logger} from 'homebridge/lib/logger';
-import {API} from 'homebridge/lib/api';
 
 export class OutsideTemperatureHandler implements ServiceHandler {
-    private readonly _log: Logger;
-    private readonly _api: API;
-    private readonly _accessory: ComfoAirAccessory;
+  private readonly _log: Logger;
+  private readonly _api: API;
+  private readonly _accessory: ComfoAirAccessory;
 
-    private readonly _info: boolean = true;
+  private readonly _info: boolean = true;
 
-    // Services
-    private readonly _temperatureSensorService: Service;
+  // Services
+  private readonly _temperatureSensorService: Service;
 
-    constructor(log: Logger, api: API, accessory: ComfoAirAccessory) {
-        this._log = log;
-        this._api = api;
-        this._accessory = accessory;
+  constructor(log: Logger, api: API, accessory: ComfoAirAccessory) {
+    this._log = log;
+    this._api = api;
+    this._accessory = accessory;
 
-        this._temperatureSensorService = this.createService();
-    }
+    this._temperatureSensorService = this.createService();
+  }
 
-    createService(): Service {
-        const temperatureSensorService = new this._api.hap.Service.TemperatureSensor();
-        temperatureSensorService.setCharacteristic(this._api.hap.Characteristic.Name, 'Outside temperature');
+  createService(): Service {
+    const Characteristic = this._api.hap.Characteristic;
+    const Service = this._api.hap.Service;
 
-        temperatureSensorService.getCharacteristic(this._api.hap.Characteristic.CurrentTemperature)
-            .on(CharacteristicEventTypes.GET, this.getCurrentOutsideTemperature.bind(this))
-        ;
+    const temperatureSensorService = new Service.TemperatureSensor();
+    temperatureSensorService.setCharacteristic(
+      Characteristic.Name,
+      'Outside temperature'
+    );
 
-        return temperatureSensorService;
-    }
+    temperatureSensorService
+      .getCharacteristic(Characteristic.CurrentTemperature)
+      .on(
+        CharacteristicEventTypes.GET,
+        this.getCurrentOutsideTemperature.bind(this)
+      );
 
-    public handleState(state: ComfoAirState): void {
-        const currentTemperature: number = ComfoAirAccessory.round(state.outsideTemperature, 2);
-        this._temperatureSensorService.getCharacteristic(this._api.hap.Characteristic.CurrentTemperature).updateValue(currentTemperature);
-    }
+    return temperatureSensorService;
+  }
 
-    public getService(): Service {
-        return this._temperatureSensorService;
-    }
+  public handleState(state: ComfoAirState): void {
+    const Characteristic = this._api.hap.Characteristic;
+    const currentTemperature: number = ComfoAirAccessory.round(
+      state.outsideTemperature,
+      2
+    );
+    this._temperatureSensorService
+      .getCharacteristic(Characteristic.CurrentTemperature)
+      .updateValue(currentTemperature);
+  }
 
-    getCurrentOutsideTemperature(callback: CharacteristicGetCallback): void {
-        this._log.info('get current outside temperature');
+  public getService(): Service {
+    return this._temperatureSensorService;
+  }
 
-        this._accessory.refreshTemperatureState((state: ComfoAirState, error?: Error) => {
-            if(this._info) {
-                this._log.info('refreshTemperatureState callback', error, state.outsideTemperature);
-            }
+  getCurrentOutsideTemperature(callback: CharacteristicGetCallback): void {
+    this._log.info('get current outside temperature');
 
-            callback(error, state.outsideTemperature);
-        });
-    }
+    this._accessory.refreshTemperatureState(
+      (state: ComfoAirState, error?: Error) => {
+        if (this._info) {
+          this._log.info(
+            'refreshTemperatureState callback',
+            error,
+            state.outsideTemperature
+          );
+        }
+
+        callback(error, state.outsideTemperature);
+      }
+    );
+  }
 }

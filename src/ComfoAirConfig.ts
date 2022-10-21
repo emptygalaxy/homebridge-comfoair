@@ -1,25 +1,28 @@
-import {AccessoryConfig} from 'homebridge/lib/server';
+import type {AccessoryConfig} from 'homebridge';
 
-export interface ComfoAirConfig extends AccessoryConfig
-{
-    debug: boolean;
-    info: boolean;
+export interface ComfoAirConfig extends AccessoryConfig {
+  debug?: boolean;
+  info?: boolean;
 
-    port: string;
-    baudRate?: number;
+  // Required
+  port?: string;
+  baudRate?: number;
 
-    deviceName: string;
-    deviceManufacturer?: string;
-    deviceModel?: string;
-    deviceSerial?: string;
+  // Required
+  deviceName?: string;
+  deviceManufacturer?: string;
+  deviceModel?: string;
+  deviceSerial?: string;
 
-    minTemperature?: number;
-    maxTemperature?: number;
+  minTemperature?: number;
+  maxTemperature?: number;
 
-    maxFilterOperatingHours?: number;
+  maxFilterOperatingHours?: number;
 
-    updateInterval?: number;
-    setOffToLow: boolean;
+  updateInterval?: number;
 
-    historyLength?: number;
+  // Required
+  setOffToLow?: boolean;
+
+  historyLength?: number;
 }
