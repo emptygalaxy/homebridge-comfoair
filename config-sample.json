@@ -12,7 +12,7 @@
 
   "accessories": [
     {
-      "accessory": "WHR930",
+      "accessory": "ComfoAir",
       "name": "Ventilation",
       "manufacturer": "Comfoair",
       "port": "/dev/tty.usbserial-1420",

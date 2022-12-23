@@ -14,16 +14,23 @@ It uses [fakegato-history](https://github.com/simont77/fakegato-history) to stor
 3. Update your configuration file. See sample-config.json in this repository for a sample.
 
 ## Configuration
-| Property | Description |
-|-|-|
-| accessory | Must be set to "Comfoair" to identify the plugin |
-| name | The name of the accessory that will be displayed in HomeKit |
-| manufacturer | The manufacturer of the accessory |
-| port | The serial port that the Comfoair system is connected to |
-| baudRate | The baud rate of the serial connection (default is 9600)|
-| minTemperature | The minimum allowed temperature for the slider in HomeKit |
-| maxTemperature |	The maximum allowed temperature for the slider in HomeKit |
-| updateInterval |	The interval (in seconds) at which to update the temperature readings |
+| Property | Type | Description |
+|----------|------|-------------|
+| `accessory` | string | Must be set to "Comfoair" to identify the plugin |
+| `debug` | boolean | Enable debug output |
+| `info` | boolean | Enable info output |
+| `port` | string | The serial port that the Comfoair system is connected to |
+| `baudRate` | number | The baud rate of the serial connection (default is 9600) |
+| `deviceName` | string | The name of the device that will be displayed in HomeKit |
+| `deviceManufacturer` | string | The manufacturer of the device |
+| `deviceModel` | string | The model of the device |
+| `deviceSerial` | string | The serial number of the device |
+| `minTemperature` | number | The minimum allowed temperature for the ventilation system |
+| `maxTemperature` | number | The maximum allowed temperature for the ventilation system |
+| `maxFilterOperatingHours` | number | The maximum number of operating hours for the filter |
+| `updateInterval` | number | The interval (in seconds) at which to update the temperature readings |
+| `setOffToLow` | boolean | Set the ventilation level to low when turning off, else the ventilation will actually set to off/away. |
+| `historyLength` | number | The number of history points to store for temperature readings |
 
 
 ## Example config.json
@@ -31,7 +38,7 @@ It uses [fakegato-history](https://github.com/simont77/fakegato-history) to stor
 {
   "accessories": [
     {
-      "accessory": "WHR930",
+      "accessory": "ComfoAir",
       "name": "Ventilation",
       "manufacturer": "Comfoair",
       "port": "/dev/ttyUSB0",
