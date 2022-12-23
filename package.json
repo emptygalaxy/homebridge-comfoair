@@ -36,8 +36,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "eslint src/**.ts",
-    "fix": "eslint --fix src/**",
+    "lint": "eslint \"src/**/*.ts\"",
+    "fix": "eslint --fix \"src/**/*.ts\"",
     "watch": "npm run build && npm link && nodemon",
     "clean": "rimraf ./dist",
     "build": "npm run clean && tsc",

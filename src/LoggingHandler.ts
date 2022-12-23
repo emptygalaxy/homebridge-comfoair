@@ -34,11 +34,10 @@ export class LoggingHandler implements ServiceHandler {
     );
 
     const loggingType = 'thermo';
-    return new FakeGatoHistoryService(
-      loggingType,
-      this._accessory,
-      this._historyLength
-    );
+    return new FakeGatoHistoryService(loggingType, this._accessory, {
+      size: this._historyLength,
+      log: this._log,
+    });
   }
 
   public handleState(state: ComfoAirState): void {
